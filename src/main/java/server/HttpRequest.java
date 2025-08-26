@@ -83,6 +83,11 @@ public class HttpRequest implements HttpServletRequest {
     }
 
     @Override
+    public String getMethod() {
+        return new String(this.requestLine.method, 0, this.requestLine.methodEnd);
+    }
+
+    @Override
     public String getAuthType() {
         return "";
     }
@@ -115,11 +120,6 @@ public class HttpRequest implements HttpServletRequest {
     @Override
     public int getIntHeader(String s) {
         return 0;
-    }
-
-    @Override
-    public String getMethod() {
-        return "";
     }
 
     @Override
