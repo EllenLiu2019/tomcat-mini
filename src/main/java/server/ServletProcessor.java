@@ -1,16 +1,12 @@
 package server;
 
-import org.apache.commons.lang3.text.StrSubstitutor;
 
 import javax.servlet.Servlet;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandler;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+
 
 public class ServletProcessor {
 
@@ -22,21 +18,17 @@ public class ServletProcessor {
             \r
             """;
 
-    public void process(Request request, Response response) throws IOException {
+    public void process(HttpRequest request, HttpResponse response) throws IOException {
         String uri = request.getUri();
         String servletName = uri.substring(uri.lastIndexOf("/") + 1);
         URLClassLoader loader;
-        PrintWriter writer = null;
 
         try {
             response.setCharacterEncoding("UTF-8");
-            writer = response.getWriter();
+            response.sendHeaders();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
-
-        String head = composeResponseHead();
-        writer.println(head);
 
         try {
             URL[] urls = new URL[1];
@@ -67,13 +59,4 @@ public class ServletProcessor {
         }
     }
 
-    private String composeResponseHead() {
-        Map<String, Object> valuesMap = new HashMap<>();
-        valuesMap.put("StatusCode", "200");
-        valuesMap.put("StatusName", "OK");
-        valuesMap.put("ContentType", "text/html;charset=uft-8");
-        valuesMap.put("ZonedDateTime", DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now()));
-        StrSubstitutor sub = new StrSubstitutor(valuesMap);
-        return sub.replace(OK_Message);
-    }
 }

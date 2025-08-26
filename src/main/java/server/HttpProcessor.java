@@ -75,10 +75,10 @@ public class HttpProcessor implements Runnable {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
 
-            Request request = new Request(inputStream);
-            request.parse();
+            HttpRequest request = new HttpRequest(inputStream);
+            request.parse(socket);
 
-            Response response = new Response(outputStream);
+            HttpResponse response = new HttpResponse(outputStream);
             response.setRequest(request);
 
             if (request.getUri().startsWith("/servlet/")) {

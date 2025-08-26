@@ -27,7 +27,7 @@ public class StaticResourceProcessor {
             \r
             <h1>File Not Found</h1>""";
 
-    public void process(Request request, Response response) throws IOException {
+    public void process(HttpRequest request, HttpResponse response) throws IOException {
         byte[] bytes;
         FileInputStream fileInputStream = null;
         PrintWriter writer;

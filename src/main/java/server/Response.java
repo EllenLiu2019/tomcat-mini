@@ -16,7 +16,7 @@ import java.util.Locale;
 public class Response implements ServletResponse {
 
     @Setter
-    Request request;
+    HttpRequest request;
 
     OutputStream outputStream;
 
