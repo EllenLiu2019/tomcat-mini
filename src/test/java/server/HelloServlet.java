@@ -1,11 +1,23 @@
 package server;
 
+import javax.servlet.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class HelloServlet implements Servlet {
     @Override
-    public void service(Request request, Response response) throws IOException {
+    public void init(ServletConfig servletConfig) throws ServletException {
+
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return null;
+    }
+
+    @Override
+    public void service(ServletRequest request, ServletResponse response) throws IOException {
+        response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
         String doc = """
                 <!DOCTYPE html>\s
                 <html>
@@ -14,6 +26,16 @@ public class HelloServlet implements Servlet {
                 <h1 align="center">Hello World 你好</h1>
                 """;
 
-        response.getOutput().write(doc.getBytes(StandardCharsets.UTF_8));
+        response.getWriter().println(doc);
+    }
+
+    @Override
+    public String getServletInfo() {
+        return "";
+    }
+
+    @Override
+    public void destroy() {
+
     }
 }

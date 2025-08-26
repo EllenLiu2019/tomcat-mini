@@ -2,14 +2,11 @@ package server;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import javax.servlet.Servlet;
+import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandler;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -25,11 +22,21 @@ public class ServletProcessor {
             \r
             """;
 
-    public void process(Request request, Response response) {
+    public void process(Request request, Response response) throws IOException {
         String uri = request.getUri();
         String servletName = uri.substring(uri.lastIndexOf("/") + 1);
         URLClassLoader loader;
-        OutputStream outputStream;
+        PrintWriter writer = null;
+
+        try {
+            response.setCharacterEncoding("UTF-8");
+            writer = response.getWriter();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        String head = composeResponseHead();
+        writer.println(head);
 
         try {
             URL[] urls = new URL[1];
@@ -49,17 +56,6 @@ public class ServletProcessor {
             throw new RuntimeException(e);
         }
 
-        outputStream = response.getOutput();
-        String head = composeResponseHead();
-
-        try {
-            outputStream.write(head.getBytes(StandardCharsets.UTF_8));
-        } catch (UnsupportedEncodingException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
         Servlet servlet;
         try {
             servlet = (Servlet) servletClass.getConstructor().newInstance();
@@ -68,12 +64,6 @@ public class ServletProcessor {
             throw new RuntimeException(e);
         } catch (Throwable e) {
             System.out.println(e);
-        }
-
-        try {
-            outputStream.flush();
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 

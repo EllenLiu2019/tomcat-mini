@@ -2,10 +2,7 @@ package server;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StaticResourceProcessor {
-
-    private static final int BUFFER_SIZE = 1024;
 
     private final static String OK_Message = """
             HTTP/1.1 ${StatusCode} ${StatusName}\r
@@ -25,36 +20,34 @@ public class StaticResourceProcessor {
             \r
             """;
 
+    private final static String errorMessage = """
+            HTTP/1.1 404 FIle Not Found\r
+            Content-Type: text/html\r
+            Content-Length: 23\r
+            \r
+            <h1>File Not Found</h1>""";
+
     public void process(Request request, Response response) throws IOException {
-        byte[] bytes = new byte[BUFFER_SIZE];
+        byte[] bytes;
         FileInputStream fileInputStream = null;
-        OutputStream output;
+        PrintWriter writer;
         try {
-            output = response.getOutput();
+            response.setCharacterEncoding("UTF-8");
+            writer = response.getWriter();
             File file = new File(HttpServer.WEB_ROOT, request.getUri());
             if (file.exists()) {
                 String head = composeResponseHead(file);
-                output.write(head.getBytes(StandardCharsets.UTF_8));
+                writer.println(head);
 
                 fileInputStream = new FileInputStream(file);
-                int ch = fileInputStream.read(bytes, 0, BUFFER_SIZE);
-                while (ch != -1) {
-                    output.write(bytes, 0, ch);
-                    ch = fileInputStream.read(bytes, 0, BUFFER_SIZE);
-                }
+                bytes = fileInputStream.readAllBytes();
+                writer.println(new String(bytes, StandardCharsets.UTF_8));
 
-                output.flush();
             } else {
-                String errorMessage = """
-                        HTTP/1.1 404 FIle Not Found\r
-                        Content-Type: text/html\r
-                        Content-Length: 23\r
-                        \r
-                        <h1>File Not Found</h1>""";
-                output.write(errorMessage.getBytes(StandardCharsets.UTF_8));
+                writer.println(errorMessage);
             }
         } catch (Exception ex) {
-            System.out.println(ex);
+            throw new RuntimeException(ex);
         } finally {
             if (fileInputStream != null) {
                 fileInputStream.close();
