@@ -1,4 +1,4 @@
-package com.ellen.tomcat.mini.server;
+package server;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +41,13 @@ public class HttpServer {
 
                 Response response = new Response(outputStream);
                 response.setRequest(request);
-                response.sendStaticResource();
+                if (request.getUri().startsWith("/servlet/")) {
+                    ServletProcessor processor = new ServletProcessor();
+                    processor.process(request, response);
+                } else {
+                    StaticResourceProcessor processor = new StaticResourceProcessor();
+                    processor.process(request, response);
+                }
 
                 socket.close();
             } catch (IOException e) {

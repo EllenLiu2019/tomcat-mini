@@ -1,4 +1,4 @@
-package com.ellen.tomcat.mini.server;
+package server;
 
 import java.io.InputStream;
 
@@ -6,7 +6,7 @@ public class Request {
 
     private InputStream input;
 
-    private String url;
+    private String uri;
 
 
     public Request(InputStream input) {
@@ -29,7 +29,7 @@ public class Request {
         }
         System.out.print(request);
         // 获取URL
-        url = parseUrl(request.toString());
+        uri = parseUrl(request.toString());
     }
 
     private String parseUrl(String requestString) {
@@ -43,7 +43,7 @@ public class Request {
         return null;
     }
 
-    public String getUrl() {
-        return url;
+    public String getUri() {
+        return uri;
     }
 }
