@@ -20,13 +20,6 @@ public class ServletProcessor {
         String servletName = uri.substring(uri.lastIndexOf("/") + 1);
 
         try {
-            response.setCharacterEncoding("UTF-8");
-            response.sendHeaders();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        try {
             Class<?> servletClass = this.getClass().getClassLoader().loadClass(servletName);
             Servlet servlet = (Servlet) servletClass.getConstructor().newInstance();
             HttpRequestFacade requestFacade = new HttpRequestFacade(request);

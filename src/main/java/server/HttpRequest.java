@@ -45,10 +45,19 @@ public class HttpRequest implements HttpServletRequest {
 
     SessionFacade sessionFacade;
 
+    private HttpResponse response;
+
+    public HttpRequest() {
+    }
 
     public HttpRequest(InputStream inputStream) {
         this.inputStream = inputStream;
-        this.sis = new SocketInputStream(this.inputStream, 2048);
+        this.sis = new SocketInputStream(this.inputStream, 2 * 1024);
+    }
+
+    public void setStream(InputStream input) {
+        this.inputStream = input;
+        this.sis = new SocketInputStream(this.inputStream, 2 * 1024);
     }
 
     public void parse(Socket socket) {
@@ -71,23 +80,27 @@ public class HttpRequest implements HttpServletRequest {
     }
 
     private void parseRequestLine() {
+
+        String tmp = ";" + DefaultHeaders.JSESSIONID_NAME + "=";
+
         int question = requestLine.indexOf("?");
+
         if (question >= 0) {
             this.queryString = new String(requestLine.uri, question + 1, requestLine.uriEnd - question - 1);
             this.uri = new String(requestLine.uri, 0, question);
 
-            int semicolon = uri.indexOf(DefaultHeaders.JSESSIONID_NAME);
+            int semicolon = uri.indexOf(tmp);
             if (semicolon > 0) {
-                this.sessionId = uri.substring(semicolon + DefaultHeaders.JSESSIONID_NAME.length());
+                this.sessionId = uri.substring(semicolon + tmp.length());
                 this.uri = uri.substring(0, semicolon);
             }
         } else {
             this.queryString = null;
             this.uri = new String(requestLine.uri, 0, requestLine.uriEnd);
 
-            int semicolon = uri.indexOf(DefaultHeaders.JSESSIONID_NAME);
+            int semicolon = uri.indexOf(tmp);
             if (semicolon >= 0) {
-                this.sessionId = uri.substring(semicolon + DefaultHeaders.JSESSIONID_NAME.length());
+                this.sessionId = uri.substring(semicolon + tmp.length());
                 this.uri = uri.substring(0, semicolon);
             }
         }
@@ -236,21 +249,28 @@ public class HttpRequest implements HttpServletRequest {
                 throw new ServletException("httpProcessor.parseHeaders.colon");
             }
 
-            String name = new String(header.name, 0, header.nameEnd);
+            String name = new String(header.name, 0, header.nameEnd).toLowerCase();
             String value = new String(header.value, 0, header.valueEnd);
+            headers.put(name, value);
 
             if (name.equals(DefaultHeaders.COOKIE_NAME)) {
-                headers.put(name, value);
                 this.cookies = parseCookieHeader(value);
                 for (Cookie cookie : cookies) {
                     if (cookie.getName().equals("jsessionid")) {
                         this.sessionId = cookie.getValue();
                     }
                 }
-            } else {
-                headers.put(name, value);
+            } else if (name.equals(DefaultHeaders.CONNECTION_NAME)) {
+                if (value.equals("close")) {
+                    this.response.setHeader("Connection", "close");
+                }
             }
+
         }
+    }
+
+    public void setResponse(HttpResponse response) {
+        this.response = response;
     }
 
     //解析Cookie头，格式为: key1=value1;key2=value2
@@ -388,8 +408,8 @@ public class HttpRequest implements HttpServletRequest {
 
     //如果有存在的session，直接返回，如果没有，创建一个新的session
     @Override
-    public HttpSession getSession(boolean b) {
-        if (this.sessionFacade != null) {
+    public HttpSession getSession(boolean var1) {
+        if (!var1 || this.sessionFacade != null) {
             return this.sessionFacade;
         }
 

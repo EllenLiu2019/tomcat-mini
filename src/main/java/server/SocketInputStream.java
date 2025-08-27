@@ -40,7 +40,9 @@ public class SocketInputStream extends ServletInputStream {
         } while ((chr == CR) || (chr == LF));
 
         //第一个非空位置
-        pos--;
+        if (pos > 0) {
+            pos--;
+        }
         int maxRead = requestLine.method.length;
         int readStart = pos;
         int readCount = 0;

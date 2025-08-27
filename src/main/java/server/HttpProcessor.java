@@ -11,7 +11,13 @@ public class HttpProcessor implements Runnable {
 
     private volatile boolean available = false;
 
-    private HttpConnector connector;
+    private final HttpConnector connector;
+
+    private int serverPort = 0;
+
+    private boolean keepAlive = false;
+
+    private boolean http11 = true;
 
 
     public HttpProcessor(HttpConnector connector) {
@@ -41,7 +47,9 @@ public class HttpProcessor implements Runnable {
     public void run() {
         while (true) {
             Socket socket = await();
-            if (socket == null) continue;
+            if (socket == null) {
+                continue;
+            }
             this.process(socket);
             this.connector.recycle(this);
         }
@@ -63,39 +71,54 @@ public class HttpProcessor implements Runnable {
     }
 
     private void process(Socket socket) {
+
         try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+            InputStream inputStream = socket.getInputStream();
+            OutputStream outputStream = socket.getOutputStream();
+            this.keepAlive = true;
 
-        InputStream inputStream;
-        OutputStream outputStream;
-        try {
-            inputStream = socket.getInputStream();
-            outputStream = socket.getOutputStream();
+            while (this.keepAlive) {
+                HttpRequest request = new HttpRequest(inputStream);
+                request.parse(socket);
 
-            HttpRequest request = new HttpRequest(inputStream);
-            request.parse(socket);
+                if (request.getSessionId() == null || request.getSession() == null) {
+                    request.getSession(true);
+                }
 
-            if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
-                request.getSession(true);
-            }
+                HttpResponse response = new HttpResponse(outputStream);
 
-            HttpResponse response = new HttpResponse(outputStream);
-            response.setRequest(request);
+                response.setRequest(request);
+                request.setResponse(response);
 
-            if (request.getUri().startsWith("/servlet/")) {
-                ServletProcessor processor = new ServletProcessor();
-                processor.process(request, response);
-            } else {
-                StaticResourceProcessor processor = new StaticResourceProcessor();
-                processor.process(request, response);
+                try {
+                    response.sendHeaders();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
+                if (request.getUri().startsWith("/servlet/")) {
+                    ServletProcessor processor = new ServletProcessor();
+                    processor.process(request, response);
+                } else {
+                    StaticResourceProcessor processor = new StaticResourceProcessor();
+                    processor.process(request, response);
+                }
+
+                response.finishResponse();
+
+                String connection = response.getHeader("Connection");
+                if ("close".equals(connection)) {
+                    this.keepAlive = false;
+                }
             }
 
             socket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void finishResponse(HttpResponse response) {
+        response.finishResponse();
     }
 }

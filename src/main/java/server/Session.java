@@ -26,7 +26,7 @@ public class Session implements HttpSession {
 
     @Override
     public String getId() {
-        return "";
+        return this.sessionId;
     }
 
     @Override

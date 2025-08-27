@@ -9,6 +9,8 @@ import java.io.IOException;
 
 public class TestServlet extends HttpServlet {
 
+    static int count = 0;
+
     String doc = """
                 <!DOCTYPE html>
                 <html>
@@ -21,7 +23,11 @@ public class TestServlet extends HttpServlet {
         System.out.println("Enter doGet()");
         System.out.println("parameter name : " + request.getParameter("name"));
 
-        response.setCharacterEncoding("UTF-8");
+        count++;
+        System.out.println("::::::::call count ::::::::: " + TestServlet.count);
+        if (count > 2) {
+            response.addHeader("Connection", "close");
+        }
 
         HttpSession session = request.getSession(true);
         String user = (String) session.getAttribute("user");
@@ -38,8 +44,6 @@ public class TestServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("Enter doGet()");
         System.out.println("parameter name : " + request.getParameter("name"));
-
-        response.setCharacterEncoding("UTF-8");
 
         System.out.println(doc);
 
