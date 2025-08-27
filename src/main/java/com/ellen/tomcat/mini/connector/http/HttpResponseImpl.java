@@ -1,8 +1,8 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.util.CookieTools;
 import lombok.Setter;
 
-import javax.management.AttributeList;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -14,10 +14,10 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpResponse implements HttpServletResponse {
+public class HttpResponseImpl implements HttpServletResponse {
 
     @Setter
-    HttpRequest request;
+    HttpRequestImpl request;
 
     OutputStream outputStream;
 
@@ -42,9 +42,9 @@ public class HttpResponse implements HttpServletResponse {
     final Set<Cookie> cookies = new HashSet<>();
 
 
-    public HttpResponse() {}
+    public HttpResponseImpl() {}
 
-    public HttpResponse(OutputStream outputStream) {
+    public HttpResponseImpl(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
 

@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
 
 import javax.servlet.ServletException;
@@ -13,7 +13,7 @@ public class ServletProcessor {
         this.connector = connector;
     }
 
-    public void process(HttpRequest request, HttpResponse response) throws IOException, ServletException {
+    public void process(HttpRequestImpl request, HttpResponseImpl response) throws IOException, ServletException {
         this.connector.getContainer().invoke(request, response);
     }
 

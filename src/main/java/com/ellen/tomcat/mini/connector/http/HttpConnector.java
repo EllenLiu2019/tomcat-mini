@@ -1,5 +1,7 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.core.StandardContext;
+import com.ellen.tomcat.mini.session.StandardSession;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +30,7 @@ public class HttpConnector implements Runnable {
 
     @Getter
     @Setter
-    private ServletContainer container;
+    private StandardContext container;
 
     public void start() {
         Thread thread = new Thread(this);
@@ -97,16 +99,16 @@ public class HttpConnector implements Runnable {
         processors.push(processor);
     }
 
-    public static Session createSession() {
-        Session session = new Session();
-        session.setValid(true);
-        session.setCreationTime(System.currentTimeMillis());
+    public static StandardSession createSession() {
+        StandardSession standardSession = new StandardSession();
+        standardSession.setValid(true);
+        standardSession.setCreationTime(System.currentTimeMillis());
 
         String sessionId = generateSessionId();
-        session.setId(sessionId);
+        standardSession.setId(sessionId);
 
-        sessions.put(sessionId, session);
-        return session;
+        sessions.put(sessionId, standardSession);
+        return standardSession;
     }
 
     protected static synchronized String generateSessionId() {

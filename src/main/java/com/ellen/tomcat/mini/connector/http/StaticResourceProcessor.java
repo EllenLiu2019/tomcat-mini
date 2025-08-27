@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
@@ -27,7 +27,7 @@ public class StaticResourceProcessor {
             \r
             <h1>File Not Found</h1>""";
 
-    public void process(HttpRequest request, HttpResponse response) throws IOException {
+    public void process(HttpRequestImpl request, HttpResponseImpl response) throws IOException {
         byte[] bytes;
         PrintWriter writer;
         String path = request.getUri().substring(1);

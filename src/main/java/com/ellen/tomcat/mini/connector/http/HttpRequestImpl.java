@@ -1,5 +1,6 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.session.StandardSessionFacade;
 import lombok.Getter;
 
 import javax.servlet.*;
@@ -14,7 +15,7 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpRequest implements HttpServletRequest {
+public class HttpRequestImpl implements HttpServletRequest {
 
     protected HashMap<String, String> headers = new HashMap<>();
 
@@ -43,14 +44,14 @@ public class HttpRequest implements HttpServletRequest {
 
     String sessionId;
 
-    SessionFacade sessionFacade;
+    StandardSessionFacade standardSessionFacade;
 
-    private HttpResponse response;
+    private HttpResponseImpl response;
 
-    public HttpRequest() {
+    public HttpRequestImpl() {
     }
 
-    public HttpRequest(InputStream inputStream) {
+    public HttpRequestImpl(InputStream inputStream) {
         this.inputStream = inputStream;
         this.sis = new SocketInputStream(this.inputStream, 2 * 1024);
     }
@@ -269,7 +270,7 @@ public class HttpRequest implements HttpServletRequest {
         }
     }
 
-    public void setResponse(HttpResponse response) {
+    public void setResponse(HttpResponseImpl response) {
         this.response = response;
     }
 
@@ -409,8 +410,8 @@ public class HttpRequest implements HttpServletRequest {
     //如果有存在的session，直接返回，如果没有，创建一个新的session
     @Override
     public HttpSession getSession(boolean var1) {
-        if (!var1 || this.sessionFacade != null) {
-            return this.sessionFacade;
+        if (!var1 || this.standardSessionFacade != null) {
+            return this.standardSessionFacade;
         }
 
         if (this.sessionId != null) {
@@ -423,8 +424,8 @@ public class HttpRequest implements HttpServletRequest {
             this.sessionId = session.getId();
         }
 
-        this.sessionFacade = new SessionFacade(session);
-        return this.sessionFacade;
+        this.standardSessionFacade = new StandardSessionFacade(session);
+        return this.standardSessionFacade;
     }
 
     public String getSessionId() {

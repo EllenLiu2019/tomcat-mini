@@ -1,5 +1,7 @@
-package server;
+package com.ellen.tomcat.mini.core;
 
+import com.ellen.tomcat.mini.Container;
+import com.ellen.tomcat.mini.Wrapper;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,24 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class ServletWrapper {
+// Wrapper 封装了一个 Servlet 实例
+public class StandardWrapper extends ContainerBase implements Wrapper {
 
-    private Servlet instance;
+    @Getter
+    private Servlet servlet;
 
     @Getter
     @Setter
     private String servletClass;
 
-    private ClassLoader loader;
 
-    private String name;
-
-    @Getter
-    @Setter
-    protected ServletContainer parent;
-
-
-    public ServletWrapper(String servletClassName, ServletContainer parent) {
+    public StandardWrapper(String servletClassName, StandardContext parent) {
         this.servletClass = servletClassName;
         this.parent = parent;
         try {
@@ -37,7 +33,7 @@ public class ServletWrapper {
     }
 
     public void loadServlet() throws ServletException {
-        if (this.instance != null) {
+        if (this.servlet != null) {
             return;
         }
         if (this.servletClass == null) {
@@ -68,7 +64,12 @@ public class ServletWrapper {
             throw new ServletException("Failed initialize servlet.");
         }
 
-        this.instance = servlet;
+        this.servlet = servlet;
+    }
+
+    @Override
+    public String getInfo() {
+        return "tomcat-mini Servlet Context, version 0.1";
     }
 
     public ClassLoader getLoader() {
@@ -78,14 +79,64 @@ public class ServletWrapper {
         return this.parent.getLoader();
     }
 
-    public Servlet getServlet() {
-        return this.instance;
-    }
-
     public void invoke(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        if (this.instance != null) {
-            this.instance.service(request, response);
+        if (this.servlet != null) {
+            this.servlet.service(request, response);
         }
+    }
+
+    public void addChild(Container child) {
+    }
+
+    public Container findChild(String name) {
+        return null;
+    }
+
+    public Container[] findChildren() {
+        return null;
+    }
+
+    public void removeChild(Container child) {
+    }
+
+    @Override
+    public int getLoadOnStartup() {
+        return 0;
+    }
+
+    @Override
+    public void setLoadOnStartup(int value) {
+
+    }
+
+    @Override
+    public void addInitParameter(String name, String value) {
+
+    }
+
+    @Override
+    public Servlet allocate() throws ServletException {
+        return null;
+    }
+
+    @Override
+    public String findInitParameter(String name) {
+        return "";
+    }
+
+    @Override
+    public String[] findInitParameters() {
+        return new String[0];
+    }
+
+    @Override
+    public void load() throws ServletException {
+
+    }
+
+    @Override
+    public void removeInitParameter(String name) {
+
     }
 }

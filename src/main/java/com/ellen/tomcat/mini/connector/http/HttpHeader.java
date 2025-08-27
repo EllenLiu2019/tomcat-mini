@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
 public class HttpHeader {
 

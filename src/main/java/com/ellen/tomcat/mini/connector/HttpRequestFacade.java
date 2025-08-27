@@ -1,6 +1,7 @@
-package server;
+package com.ellen.tomcat.mini.connector;
 
 import javax.servlet.*;
+import javax.servlet.ServletContext;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,13 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.*;
 
-public class HttpRequestFacade implements HttpServletRequest {
-
-    private HttpServletRequest request;
-
-    public HttpRequestFacade(HttpRequest request) {
-        this.request = request;
-    }
+public record HttpRequestFacade(HttpServletRequest request) implements HttpServletRequest {
 
     /* implementation of the HttpServletRequest*/
     public Object getAttribute(String name) {

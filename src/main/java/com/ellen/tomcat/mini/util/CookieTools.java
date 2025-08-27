@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.util;
 
 import javax.servlet.http.Cookie;
 

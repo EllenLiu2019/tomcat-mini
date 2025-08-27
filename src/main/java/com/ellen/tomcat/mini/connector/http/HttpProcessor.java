@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.connector.http;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -79,14 +79,14 @@ public class HttpProcessor implements Runnable {
             this.keepAlive = true;
 
             while (this.keepAlive) {
-                HttpRequest request = new HttpRequest(inputStream);
+                HttpRequestImpl request = new HttpRequestImpl(inputStream);
                 request.parse(socket);
 
                 if (request.getSessionId() == null || request.getSession() == null) {
                     request.getSession(true);
                 }
 
-                HttpResponse response = new HttpResponse(outputStream);
+                HttpResponseImpl response = new HttpResponseImpl(outputStream);
 
                 response.setRequest(request);
                 request.setResponse(response);
@@ -119,7 +119,7 @@ public class HttpProcessor implements Runnable {
         }
     }
 
-    private void finishResponse(HttpResponse response) {
+    private void finishResponse(HttpResponseImpl response) {
         response.finishResponse();
     }
 }

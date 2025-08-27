@@ -1,4 +1,4 @@
-package server;
+package com.ellen.tomcat.mini.connector;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -8,13 +8,7 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Locale;
 
-public class HttpResponseFacade implements HttpServletResponse {
-
-    private HttpServletResponse response;
-
-    public HttpResponseFacade(HttpResponse response) {
-        this.response = response;
-    }
+public record HttpResponseFacade(HttpServletResponse response) implements HttpServletResponse {
 
     public void addDateHeader(String name, long value) {
         response.addDateHeader(name, value);

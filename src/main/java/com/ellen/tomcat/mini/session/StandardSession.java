@@ -1,4 +1,6 @@
-package server;
+package com.ellen.tomcat.mini.session;
+
+import com.ellen.tomcat.mini.Session;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
@@ -8,7 +10,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Session implements HttpSession {
+public class StandardSession implements HttpSession, Session {
 
     private String sessionId;
 
@@ -42,6 +44,16 @@ public class Session implements HttpSession {
     @Override
     public void setMaxInactiveInterval(int i) {
 
+    }
+
+    @Override
+    public void setNew(boolean isNew) {
+
+    }
+
+    @Override
+    public HttpSession getSession() {
+        return null;
     }
 
     @Override
@@ -110,11 +122,36 @@ public class Session implements HttpSession {
         this.valid = b;
     }
 
+    @Override
+    public boolean isValid() {
+        return false;
+    }
+
+    @Override
+    public void access() {
+
+    }
+
+    @Override
+    public void expire() {
+
+    }
+
+    @Override
+    public void recycle() {
+
+    }
+
     public void setCreationTime(long currentTimeMillis) {
         this.creationTime = currentTimeMillis;
     }
 
     public void setId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    @Override
+    public String getInfo() {
+        return "";
     }
 }
