@@ -1,18 +1,20 @@
 package server;
 
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SocketInputStream extends InputStream {
+public class SocketInputStream extends ServletInputStream {
 
-    private static final byte CR = (byte) '\r';
-    private static final byte LF = (byte) '\n';
-    private static final byte SP = (byte) ' ';
+    private static final byte CR = (byte) '\r'; // 回车
+    private static final byte LF = (byte) '\n'; // 换行
+    private static final byte SP = (byte) ' '; // 空格
     private static final byte HT = (byte) '\t';
     private static final byte COLON = (byte) ':';
     private static final int LC_OFFSET = 'A' - 'a';
 
-    protected byte buf[];
+    protected byte[] buf;
 
     protected int count;
 
@@ -182,6 +184,7 @@ public class SocketInputStream extends InputStream {
                     space = false;
                 }
             }
+
             while (!eol) {
                 // 我们已经到了内部缓冲区的尽头
                 if (pos >= count) {
@@ -192,7 +195,9 @@ public class SocketInputStream extends InputStream {
                     pos = 0;
                     readStart = 0;
                 }
+                // 回车换行表示行结束
                 if (buf[pos] == CR) {
+                    // do nothing
                 } else if (buf[pos] == LF) {
                     eol = true;
                 } else {
@@ -203,6 +208,8 @@ public class SocketInputStream extends InputStream {
                 }
                 pos++;
             }
+
+            //再往前读一个字符，如果是空格或制表符号则继续，多行处理的情况
             int nextChr = read();
             if ((nextChr != SP) && (nextChr != HT)) {
                 pos--;
@@ -247,5 +254,20 @@ public class SocketInputStream extends InputStream {
         if (nRead > 0) {
             count = nRead;
         }
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public boolean isReady() {
+        return false;
+    }
+
+    @Override
+    public void setReadListener(ReadListener readListener) {
+
     }
 }

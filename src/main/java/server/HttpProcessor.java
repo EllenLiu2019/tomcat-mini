@@ -78,6 +78,10 @@ public class HttpProcessor implements Runnable {
             HttpRequest request = new HttpRequest(inputStream);
             request.parse(socket);
 
+            if (request.getSessionId() == null || request.getSessionId().isEmpty()) {
+                request.getSession(true);
+            }
+
             HttpResponse response = new HttpResponse(outputStream);
             response.setRequest(request);
 

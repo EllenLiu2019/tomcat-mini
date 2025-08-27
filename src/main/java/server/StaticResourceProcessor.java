@@ -29,18 +29,16 @@ public class StaticResourceProcessor {
 
     public void process(HttpRequest request, HttpResponse response) throws IOException {
         byte[] bytes;
-        FileInputStream fileInputStream = null;
         PrintWriter writer;
-        try {
+        String path = request.getUri().substring(1);
+        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(path)) {
             response.setCharacterEncoding("UTF-8");
             writer = response.getWriter();
-            File file = new File(HttpServer.WEB_ROOT, request.getUri());
-            if (file.exists()) {
-                String head = composeResponseHead(file);
-                writer.println(head);
+            if (is != null) {
+                bytes = is.readAllBytes();
+                String head = composeResponseHead(bytes.length);
 
-                fileInputStream = new FileInputStream(file);
-                bytes = fileInputStream.readAllBytes();
+                writer.println(head);
                 writer.println(new String(bytes, StandardCharsets.UTF_8));
 
             } else {
@@ -48,19 +46,15 @@ public class StaticResourceProcessor {
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
-        } finally {
-            if (fileInputStream != null) {
-                fileInputStream.close();
-            }
         }
     }
 
-    private String composeResponseHead(File file) {
+    private String composeResponseHead(long length) {
         Map<String, Object> values = new HashMap<>();
         values.put("StatusCode", "200");
         values.put("StatusName", "OK");
         values.put("ContentType", "text/html;charset=utf-8");
-        values.put("ContentLength", file.length());
+        values.put("ContentLength", length);
         values.put("ZonedDateTime", DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now()));
         StrSubstitutor sub = new StrSubstitutor(values);
         return sub.replace(OK_Message);
