@@ -24,10 +24,10 @@ public class TestServlet extends HttpServlet {
         System.out.println("parameter name : " + request.getParameter("name"));
 
         count++;
-        System.out.println("::::::::call count ::::::::: " + TestServlet.count);
-        if (count > 2) {
+        //System.out.println("::::::::call count ::::::::: " + TestServlet.count);
+        //if (count > 2) {
             response.addHeader("Connection", "close");
-        }
+        //}
 
         HttpSession session = request.getSession(true);
         String user = (String) session.getAttribute("user");

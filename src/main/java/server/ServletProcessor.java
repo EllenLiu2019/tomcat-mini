@@ -1,33 +1,20 @@
 package server;
 
 
-import javax.servlet.Servlet;
+import javax.servlet.ServletException;
 import java.io.*;
 
 
 public class ServletProcessor {
 
-    private final static String OK_Message = """
-            HTTP/1.1 ${StatusCode} ${StatusName}\r
-            Content-Type: ${ContentType}\r
-            Server: mini\r
-            Date: ${ZonedDateTime}\r
-            \r
-            """;
+    private HttpConnector connector;
 
-    public void process(HttpRequest request, HttpResponse response) throws IOException {
-        String uri = request.getUri();
-        String servletName = uri.substring(uri.lastIndexOf("/") + 1);
+    public ServletProcessor(HttpConnector connector) {
+        this.connector = connector;
+    }
 
-        try {
-            Class<?> servletClass = this.getClass().getClassLoader().loadClass(servletName);
-            Servlet servlet = (Servlet) servletClass.getConstructor().newInstance();
-            HttpRequestFacade requestFacade = new HttpRequestFacade(request);
-            HttpResponseFacade responseFacade = new HttpResponseFacade(response);
-            servlet.service(requestFacade, responseFacade);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void process(HttpRequest request, HttpResponse response) throws IOException, ServletException {
+        this.connector.getContainer().invoke(request, response);
     }
 
 }

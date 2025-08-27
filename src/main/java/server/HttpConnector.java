@@ -1,5 +1,8 @@
 package server;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -22,6 +25,10 @@ public class HttpConnector implements Runnable {
     final Deque<HttpProcessor> processors = new ConcurrentLinkedDeque<>();
 
     public static Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
+
+    @Getter
+    @Setter
+    private ServletContainer container;
 
     public void start() {
         Thread thread = new Thread(this);
