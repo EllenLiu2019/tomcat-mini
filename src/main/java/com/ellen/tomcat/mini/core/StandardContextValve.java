@@ -20,7 +20,8 @@ final class StandardContextValve extends ValveBase {
         System.out.println("StandardContextValve invoke");
 
         String uri = ((HttpRequestImpl) request).getUri();
-        String servletName = uri.substring(uri.lastIndexOf("/") + 1);
+        String docbase = ((HttpRequestImpl) request).getDocbase();
+        String servletName = docbase + "." + uri.substring(uri.lastIndexOf("/") + 1);
         StandardContext context = (StandardContext) super.getContainer();
         StandardWrapper servletWrapper = (StandardWrapper) context.getWrapper(servletName);
 

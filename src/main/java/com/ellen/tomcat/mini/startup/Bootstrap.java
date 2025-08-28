@@ -1,15 +1,13 @@
 package com.ellen.tomcat.mini.startup;
 
 
-import com.ellen.tomcat.mini.Logger;
-import com.ellen.tomcat.mini.core.ContainerListenerDef;
-import com.ellen.tomcat.mini.core.FilterDef;
-import com.ellen.tomcat.mini.core.FilterMap;
-import com.ellen.tomcat.mini.core.StandardContext;
+import com.ellen.tomcat.mini.core.*;
 import com.ellen.tomcat.mini.connector.http.HttpConnector;
-import com.ellen.tomcat.mini.logger.FileLogger;
+
 
 public class Bootstrap {
+
+    public static final String WEB_ROOT = System.getProperty("user.dir");
 
     private static int debug = 0;
 
@@ -17,33 +15,19 @@ public class Bootstrap {
         if (debug >= 1) {
             log(".... startup ....");
         }
+        System.setProperty("com.ellen.tomcat.mini.base", WEB_ROOT);
+
         HttpConnector connector = new HttpConnector();
-        StandardContext container = new StandardContext();
+        StandardHost container = new StandardHost();
+
+        WebappClassLoader loader = new WebappClassLoader();
+        container.setLoader(loader); // invoke ContainerBase.setLoader()
+        loader.init();
+
         connector.setContainer(container);
         container.setConnector(connector);
 
-        container.setLogger(new FileLogger());
-
-        container.addListenerDef(ContainerListenerDef.builder()
-                .listenerName("TestListener")
-                .listenerClass("server.TestListener")
-                .build());
-
-        try {
-            container.addFilterDef(FilterDef.builder()
-                    .filterName("TestFilter")
-                    .filterClass("server.TestFilter")
-                    .build());
-
-            container.addFilterMap(FilterMap.builder()
-                    .filterName("TestFilter")
-                    .urlPattern("/*")
-                    .build());
-            container.filterBuild();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+        container.init();
         connector.start();
     }
 
@@ -52,8 +36,4 @@ public class Bootstrap {
         System.out.println(message);
     }
 
-    private static void log(String message, Throwable exception) {
-        log(message);
-        exception.printStackTrace(System.out);
-    }
 }

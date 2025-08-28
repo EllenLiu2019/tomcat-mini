@@ -1,10 +1,8 @@
 package com.ellen.tomcat.mini.connector.http;
 
 import com.ellen.tomcat.mini.*;
-import com.ellen.tomcat.mini.core.StandardContext;
 import com.ellen.tomcat.mini.session.StandardSession;
 import lombok.Getter;
-import lombok.Setter;
 
 import javax.servlet.http.HttpSession;
 import java.io.IOException;

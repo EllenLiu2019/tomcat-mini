@@ -13,7 +13,7 @@ public abstract class ContainerBase implements Container {
 
     protected final Map<String, Container> children = new ConcurrentHashMap<>();
 
-    protected ClassLoader loader;
+    protected ClassLoader loader = new WebappClassLoader();
 
     @Getter
     @Setter

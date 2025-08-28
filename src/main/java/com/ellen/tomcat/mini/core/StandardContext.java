@@ -10,7 +10,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,9 +25,7 @@ public class StandardContext extends ContainerBase implements Context {
     @Getter
     HttpConnector connector;
 
-    @Setter
-    @Getter
-    ClassLoader loader = StandardContext.class.getClassLoader();
+    private ClassLoader loader = StandardContext.class.getClassLoader();
 
     // servletName - ServletClassName
     Map<String, String> servletClsMap = new ConcurrentHashMap<>();
@@ -47,14 +44,34 @@ public class StandardContext extends ContainerBase implements Context {
 
     private final ArrayList<ContainerListener> listeners = new ArrayList<>();
 
+    private String docbase;
 
-    public StandardContext() {
+    public StandardContext(String docbase, HttpConnector connector) {
         super(new StandardContextValve());
         super.log("Container created.");
+        this.docbase = docbase;
+        this.connector = connector;
+        this.init();
     }
 
-    public void start() {
+    public void init() {
         fireContainerEvent("Container Started", this);
+
+        try {
+            addFilterDef(FilterDef.builder()
+                    .filterName("TestFilter")
+                    .filterClass(this.docbase + ".server.TestFilter")
+                    .build());
+
+            addFilterMap(FilterMap.builder()
+                    .filterName("TestFilter")
+                    .urlPattern("/*")
+                    .build());
+
+            filterBuild();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void addContainerListener(ContainerListener listener) {
@@ -227,7 +244,7 @@ public class StandardContext extends ContainerBase implements Context {
 
     @Override
     public void setDocBase(String docBase) {
-
+        this.docbase = docBase;
     }
 
     @Override

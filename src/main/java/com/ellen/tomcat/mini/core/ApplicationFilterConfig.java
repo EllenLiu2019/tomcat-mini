@@ -15,14 +15,14 @@ import java.util.Map;
 
 final class ApplicationFilterConfig implements FilterConfig {
 
-    private Context context;
+    private StandardContext context;
 
     @Getter
     private Filter filter;
     private FilterDef filterDef;
 
 
-    public ApplicationFilterConfig(Context context, FilterDef filterDef)
+    public ApplicationFilterConfig(StandardContext context, FilterDef filterDef)
             throws ClassCastException, ClassNotFoundException,
             IllegalAccessException, InstantiationException, ServletException, InvocationTargetException, NoSuchMethodException {
         this.context = context;

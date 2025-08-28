@@ -1,4 +1,4 @@
-package server;
+package v1.server;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -16,12 +16,12 @@ public class TestServlet extends HttpServlet {
                 <html>
                 <head><meta charset="utf-8"><title>Test</title></head>
                 <body color="#f0f0f0">
-                <h1 align="center"> Test 你好 </h1>
+                <h1 align="center"> v1 Test 你好 </h1>
                 """;
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("Enter doGet()");
-        System.out.println("parameter name : " + request.getParameter("name"));
+        System.out.println("v1 Enter doGet");
+        System.out.println("v1 parameter name : " + request.getParameter("name"));
 
         count++;
         //System.out.println("---------- call count --------- " + TestServlet.count);
@@ -31,7 +31,7 @@ public class TestServlet extends HttpServlet {
 
         HttpSession session = request.getSession(true);
         String user = (String) session.getAttribute("user");
-        System.out.println("get user from session : " + user);
+        System.out.println("v1 get user from session : " + user);
         if (user == null || user.isEmpty()) {
             session.setAttribute("user", "testUser");
         }
@@ -42,8 +42,8 @@ public class TestServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("Enter doGet()");
-        System.out.println("parameter name : " + request.getParameter("name"));
+        System.out.println("v1 doPost");
+        System.out.println("v1 parameter name : " + request.getParameter("name"));
 
         System.out.println(doc);
 

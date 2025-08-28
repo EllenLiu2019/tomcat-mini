@@ -31,6 +31,9 @@ public class HttpRequestImpl implements HttpServletRequest, Request {
     @Getter
     private String uri;
 
+    @Getter
+    private String docbase;
+
     private int port;
 
     private InetAddress address;
@@ -106,6 +109,13 @@ public class HttpRequestImpl implements HttpServletRequest, Request {
                 this.uri = uri.substring(0, semicolon);
             }
         }
+
+        int contextSlash = uri.indexOf("/", 1);
+        if (contextSlash != -1) {
+            this.docbase = uri.substring(1, contextSlash);
+            this.uri = uri.substring(contextSlash);
+        }
+
     }
 
     protected void parseParameters() {
