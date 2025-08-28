@@ -36,9 +36,6 @@ public class StaticResourceProcessor {
             writer = response.getWriter();
             if (is != null) {
                 bytes = is.readAllBytes();
-                String head = composeResponseHead(bytes.length);
-
-                writer.println(head);
                 writer.println(new String(bytes, StandardCharsets.UTF_8));
 
             } else {

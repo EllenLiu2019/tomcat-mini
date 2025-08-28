@@ -24,7 +24,7 @@ public class TestServlet extends HttpServlet {
         System.out.println("parameter name : " + request.getParameter("name"));
 
         count++;
-        //System.out.println("::::::::call count ::::::::: " + TestServlet.count);
+        //System.out.println("---------- call count --------- " + TestServlet.count);
         //if (count > 2) {
             response.addHeader("Connection", "close");
         //}

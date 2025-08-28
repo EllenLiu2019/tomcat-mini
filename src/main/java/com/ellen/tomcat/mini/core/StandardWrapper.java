@@ -1,18 +1,21 @@
 package com.ellen.tomcat.mini.core;
 
 import com.ellen.tomcat.mini.Container;
+import com.ellen.tomcat.mini.Request;
+import com.ellen.tomcat.mini.Response;
 import com.ellen.tomcat.mini.Wrapper;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 // Wrapper 封装了一个 Servlet 实例
 public class StandardWrapper extends ContainerBase implements Wrapper {
+
+    @Getter
+    final String info = "tomcat-mini Servlet Context, version 0.1";
 
     @Getter
     private Servlet servlet;
@@ -23,6 +26,8 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
 
 
     public StandardWrapper(String servletClassName, StandardContext parent) {
+        super(new StandardWrapperValve());
+
         this.servletClass = servletClassName;
         this.parent = parent;
         try {
@@ -30,6 +35,8 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         } catch (ServletException e) {
             e.printStackTrace();
         }
+
+        super.log("Wrapper created.");
     }
 
     public void loadServlet() throws ServletException {
@@ -40,20 +47,16 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
             throw new ServletException("servlet class has not been specified");
         }
 
-        Servlet servlet;
-        Class<?> classClass = null;
+        Servlet servlet = null;
+        Class<?> classClass;
         ClassLoader classLoader = this.getLoader();
         try {
             if (classLoader != null) {
                 classClass = classLoader.loadClass(this.servletClass);
+                servlet = (Servlet) classClass.getConstructor().newInstance();
             }
         } catch (ClassNotFoundException e) {
             throw new ServletException("Servlet class not found");
-        }
-
-        try {
-            assert classClass != null;
-            servlet = (Servlet) classClass.getConstructor().newInstance();
         } catch (Throwable e) {
             throw new ServletException("Failed to instantiate servlet");
         }
@@ -67,11 +70,6 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         this.servlet = servlet;
     }
 
-    @Override
-    public String getInfo() {
-        return "tomcat-mini Servlet Context, version 0.1";
-    }
-
     public ClassLoader getLoader() {
         if (this.loader != null) {
             return this.loader;
@@ -79,12 +77,18 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         return this.parent.getLoader();
     }
 
-    public void invoke(HttpServletRequest request, HttpServletResponse response)
+    public void invoke(Request request, Response response) throws IOException, ServletException {
+        System.out.println("StandardWrapper invoke()");
+
+        super.invoke(request, response);
+    }
+
+    /*public void invoke(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         if (this.servlet != null) {
             this.servlet.service(request, response);
         }
-    }
+    }*/
 
     public void addChild(Container child) {
     }

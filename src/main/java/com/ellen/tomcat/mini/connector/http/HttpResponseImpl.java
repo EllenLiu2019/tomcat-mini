@@ -1,9 +1,14 @@
 package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.Connector;
+import com.ellen.tomcat.mini.Context;
+import com.ellen.tomcat.mini.Request;
+import com.ellen.tomcat.mini.Response;
 import com.ellen.tomcat.mini.util.CookieTools;
 import lombok.Setter;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -14,9 +19,8 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpResponseImpl implements HttpServletResponse {
+public class HttpResponseImpl implements HttpServletResponse, Response {
 
-    @Setter
     HttpRequestImpl request;
 
     OutputStream outputStream;
@@ -25,7 +29,7 @@ public class HttpResponseImpl implements HttpServletResponse {
 
     String contentType;
 
-    long contentLength = -1;
+    int contentLength = -1;
 
     String charset;
 
@@ -42,14 +46,12 @@ public class HttpResponseImpl implements HttpServletResponse {
     final Set<Cookie> cookies = new HashSet<>();
 
 
-    public HttpResponseImpl() {}
-
     public HttpResponseImpl(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
 
-    public void setStream(OutputStream outputStream) {
-        this.outputStream = outputStream;
+    public void setRequest(HttpRequestImpl request) {
+        this.request = request;
     }
 
     protected String getStatusMessage(int status) {
@@ -176,7 +178,7 @@ public class HttpResponseImpl implements HttpServletResponse {
         return this.protocol;
     }
 
-    public long getContentLength() {
+    public int getContentLength() {
         return this.contentLength;
     }
 
@@ -291,6 +293,16 @@ public class HttpResponseImpl implements HttpServletResponse {
     }
 
     @Override
+    public PrintWriter getReporter() {
+        return null;
+    }
+
+    @Override
+    public void recycle() {
+
+    }
+
+    @Override
     public ServletOutputStream getOutputStream() throws IOException {
         return null;
     }
@@ -321,6 +333,11 @@ public class HttpResponseImpl implements HttpServletResponse {
     }
 
     @Override
+    public void sendAcknowledgement() throws IOException {
+
+    }
+
+    @Override
     public boolean isCommitted() {
         return false;
     }
@@ -337,6 +354,74 @@ public class HttpResponseImpl implements HttpServletResponse {
 
     @Override
     public Locale getLocale() {
+        return null;
+    }
+
+    @Override
+    public Connector getConnector() {
+        return null;
+    }
+
+    @Override
+    public void setConnector(Connector connector) {
+
+    }
+
+    @Override
+    public int getContentCount() {
+        return 0;
+    }
+
+    @Override
+    public Context getContext() {
+        return null;
+    }
+
+    @Override
+    public void setContext(Context context) {
+
+    }
+
+    @Override
+    public String getInfo() {
+        return "";
+    }
+
+    @Override
+    public Request getRequest() {
+        return null;
+    }
+
+    @Override
+    public void setRequest(Request request) {
+    }
+
+    @Override
+    public ServletResponse getResponse() {
+        return null;
+    }
+
+    @Override
+    public OutputStream getStream() {
+        return null;
+    }
+
+    public void setStream(OutputStream outputStream) {
+        this.outputStream = outputStream;
+    }
+
+    @Override
+    public void setError() {
+
+    }
+
+    @Override
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public ServletOutputStream createOutputStream() throws IOException {
         return null;
     }
 }

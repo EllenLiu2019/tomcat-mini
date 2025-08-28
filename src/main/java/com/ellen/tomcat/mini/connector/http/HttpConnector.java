@@ -1,5 +1,6 @@
 package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.*;
 import com.ellen.tomcat.mini.core.StandardContext;
 import com.ellen.tomcat.mini.session.StandardSession;
 import lombok.Getter;
@@ -16,7 +17,11 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public class HttpConnector implements Runnable {
+public class HttpConnector implements Connector, Runnable {
+
+    private String info = "com.ellen.tomcat.mini.connector.http.HttpConnector/0.1";
+
+    private final int port = 8080;
 
     int minProcessors = 3;
 
@@ -29,10 +34,13 @@ public class HttpConnector implements Runnable {
     public static Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
 
     @Getter
-    @Setter
-    private StandardContext container;
+    private Container container;
+
+    private String threadName;
 
     public void start() {
+        this.threadName = "HttpConnector[" + this.port + "]";
+        log("httpConnector.starting  " + threadName);
         Thread thread = new Thread(this);
         thread.start();
     }
@@ -40,7 +48,6 @@ public class HttpConnector implements Runnable {
     @Override
     public void run() {
         ServerSocket serverSocket;
-        int port = 8080;
         try {
             serverSocket = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
         } catch (IOException e) {
@@ -91,8 +98,21 @@ public class HttpConnector implements Runnable {
         processor.start();
         this.processors.push(processor);
         this.curProcessors++;
-        System.out.println("current number of Processors:" + this.curProcessors);
+        log("current number of Processors:" + this.curProcessors);
         return processors.pop();
+    }
+
+    private void log(String message) {
+        Logger logger = this.container.getLogger();
+        String localName = this.threadName;
+        if (localName == null) {
+            localName = "HttpConnector";
+        }
+        if (logger != null) {
+            logger.log(localName + " " + message);
+        } else {
+            System.out.println(localName + " " + message);
+        }
     }
 
     public void recycle(HttpProcessor processor) {
@@ -137,5 +157,41 @@ public class HttpConnector implements Runnable {
         }
 
         return result.toString();
+    }
+
+
+    @Override
+    public void setContainer(Container container) {
+        this.container = container;
+    }
+
+    @Override
+    public String getInfo() {
+        return "";
+    }
+
+    @Override
+    public String getScheme() {
+        return "";
+    }
+
+    @Override
+    public void setScheme(String scheme) {
+
+    }
+
+    @Override
+    public Request createRequest() {
+        return null;
+    }
+
+    @Override
+    public Response createResponse() {
+        return null;
+    }
+
+    @Override
+    public void initialize() {
+
     }
 }
