@@ -83,13 +83,6 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         super.invoke(request, response);
     }
 
-    /*public void invoke(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        if (this.servlet != null) {
-            this.servlet.service(request, response);
-        }
-    }*/
-
     public void addChild(Container child) {
     }
 

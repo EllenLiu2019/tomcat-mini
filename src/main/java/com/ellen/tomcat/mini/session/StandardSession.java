@@ -1,10 +1,13 @@
 package com.ellen.tomcat.mini.session;
 
 import com.ellen.tomcat.mini.Session;
+import com.ellen.tomcat.mini.SessionEvent;
+import com.ellen.tomcat.mini.SessionListener;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
@@ -20,6 +23,39 @@ public class StandardSession implements HttpSession, Session {
 
     private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
+    private final transient ArrayList<SessionListener> listeners = new ArrayList<>();
+
+    public void addSessionListener(SessionListener listener) {
+        synchronized (this.listeners) {
+            this.listeners.add(listener);
+        }
+    }
+
+    public void removeSessionListener(SessionListener listener) {
+        synchronized (listeners) {
+            this.listeners.remove(listener);
+        }
+    }
+
+    public void setId(String sessionId) {
+        this.sessionId = sessionId;
+        fireSessionEvent(Session.SESSION_CREATED_EVENT, null);
+    }
+
+    public void fireSessionEvent(String type, Object data) {
+        if (this.listeners.isEmpty()) {
+            return;
+        }
+
+        SessionEvent event = new SessionEvent(this, type, data);
+        SessionListener[] list = new SessionListener[0];
+        synchronized (listeners) {
+            list = this.listeners.toArray(list);
+        }
+        for (SessionListener sessionListener : list) {
+            sessionListener.sessionEvent(event);
+        }
+    }
 
     @Override
     public long getCreationTime() {
@@ -144,10 +180,6 @@ public class StandardSession implements HttpSession, Session {
 
     public void setCreationTime(long currentTimeMillis) {
         this.creationTime = currentTimeMillis;
-    }
-
-    public void setId(String sessionId) {
-        this.sessionId = sessionId;
     }
 
     @Override
