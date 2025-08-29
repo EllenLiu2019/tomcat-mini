@@ -301,10 +301,13 @@ public class HttpResponseImpl implements HttpServletResponse, Response {
     public void recycle() {
 
     }
-
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
         return null;
+    }
+
+    public OutputStream getOutput() throws IOException {
+        return this.outputStream;
     }
 
     @Override

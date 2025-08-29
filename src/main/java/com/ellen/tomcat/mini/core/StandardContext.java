@@ -1,16 +1,23 @@
 package com.ellen.tomcat.mini.core;
 
 import com.ellen.tomcat.mini.*;
+import com.ellen.tomcat.mini.logger.FileLogger;
 import lombok.Getter;
 import lombok.Setter;
 import com.ellen.tomcat.mini.connector.http.HttpConnector;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
 
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,6 +52,8 @@ public class StandardContext extends ContainerBase implements Context {
 
     private String docbase;
 
+    private static final boolean WEB_XML_CONFIG = true;
+
     public StandardContext(String docbase, HttpConnector connector) {
         super(new StandardContextValve());
         super.log("Container created.");
@@ -53,29 +62,30 @@ public class StandardContext extends ContainerBase implements Context {
     }
 
     public void start() {
+        if (WEB_XML_CONFIG) {
+            this.webXmlStart();
+            return;
+        }
         addListenerDef(ContainerListenerDef.builder()
                 .listenerName("ContextListener")
-                .listenerClass(this.docbase + ".server.ContextListener")
+                .listenerClass(this.docbase + ".ContextListener")
                 .build());
 
         listenerStart();
+
         fireContainerEvent("Container Started", this);
 
-        try {
-            addFilterDef(FilterDef.builder()
-                    .filterName("AuthFilter")
-                    .filterClass(this.docbase + ".server.AuthFilter")
-                    .build());
+        addFilterDef(FilterDef.builder()
+                .filterName("AuthFilter")
+                .filterClass(this.docbase + "." + "AuthFilter")
+                .build());
 
-            addFilterMap(FilterMap.builder()
-                    .filterName("AuthFilter")
-                    .urlPattern("/*")
-                    .build());
+        addFilterMap(FilterMap.builder()
+                .filterName("AuthFilter")
+                .urlPattern("/*")
+                .build());
 
-            filterBuild();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        filterStart();
     }
 
     public void listenerStart() {
@@ -188,13 +198,18 @@ public class StandardContext extends ContainerBase implements Context {
         return this.filterMaps;
     }
 
-    public void filterBuild() throws Exception {
+    public void filterStart() {
         System.out.println("Filter Build..........");
 
         synchronized (this.filterConfigs) {
             this.filterConfigs.clear();
             for (String name : this.filterDefs.keySet()) {
-                ApplicationFilterConfig filterConfig = new ApplicationFilterConfig(this, this.filterDefs.get(name));
+                ApplicationFilterConfig filterConfig;
+                try {
+                    filterConfig = new ApplicationFilterConfig(this, this.filterDefs.get(name));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 this.filterConfigs.put(name, filterConfig);
             }
         }
@@ -212,6 +227,91 @@ public class StandardContext extends ContainerBase implements Context {
             return urlPattern.indexOf('/') < 0;
         }
         return urlPattern.startsWith("/");
+    }
+
+    private void webXmlStart(){
+        fireContainerEvent("Container Started",this);
+
+        Logger logger = new FileLogger();
+        setLogger(logger);
+
+        //scan web.xml
+        String file = System.getProperty("com.ellen.tomcat.mini.webapps") + File.separator +
+                this.docbase + File.separator + "WEB-INF" + File.separator + "web.xml";
+
+        SAXReader reader = new SAXReader();
+        Document document;
+        try {
+            document = reader.read(file);
+            Element root = document.getRootElement();
+
+            //listeners
+            List<Element> listeners = root.elements("listener");
+            for (Element listener : listeners) {
+                Element listenerClass = listener.element("listener-class");
+                String listenerClassName = listenerClass.getText();
+                System.out.println("listener class name: " + listenerClassName);
+
+                //load listeners
+                addListenerDef(ContainerListenerDef.builder()
+                        .listenerName(listenerClassName)
+                        .listenerClass(listenerClassName)
+                        .build());
+            }
+            listenerStart();
+
+            //filters
+            List<Element> filters = root.elements("filter");
+            for (Element filter : filters) {
+                Element filterName = filter.element("filter-name");
+                String filterNameStr = filterName.getText();
+                Element filterClass = filter.element("filter-class");
+                String filterClassStr = filterClass.getText();
+                System.out.println("filter " + filterNameStr + filterClassStr);
+
+                //load filters
+                addFilterDef(FilterDef.builder().filterName(filterNameStr).filterClass(filterClassStr).build());
+            }
+
+            //filter mappings
+            List<Element> filterMaps = root.elements("filter-mapping");
+            for (Element filterMap : filterMaps) {
+                Element filterName = filterMap.element("filter-name");
+                String filterNameStr = filterName.getText();
+                Element urlPattern = filterMap.element("url-pattern");
+                String urlPatternStr = urlPattern.getText();
+                System.out.println("filter mapping " + filterNameStr + urlPatternStr);
+
+                addFilterMap(FilterMap.builder().filterName(filterNameStr).urlPattern(urlPatternStr).build());
+            }
+
+            filterStart();
+
+            //servlet
+            List<Element> servlets = root.elements("servlet");
+            for (Element servlet : servlets) {
+                Element servletName = servlet.element("servlet-name");
+                String servletNameStr = servletName.getText();
+                Element servletClass = servlet.element("servlet-class");
+                String servletClassStr = servletClass.getText();
+                Element loadOnStartup = servlet.element("load-on-startup");
+                String loadOnStartupStr = null;
+                if (loadOnStartup != null) {
+                    loadOnStartupStr = loadOnStartup.getText();
+                }
+
+                System.out.println("servlet [" + servletNameStr + ": " + servletClassStr + "]");
+
+                if (loadOnStartupStr != null) {
+                    this.getWrapper(servletClassStr);
+                }
+            }
+
+        } catch (DocumentException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("Context started.........");
     }
 
     @Override

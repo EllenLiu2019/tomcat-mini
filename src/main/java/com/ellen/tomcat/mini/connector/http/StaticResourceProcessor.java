@@ -1,5 +1,7 @@
 package com.ellen.tomcat.mini.connector.http;
 
+import com.ellen.tomcat.mini.Loader;
+import com.ellen.tomcat.mini.loader.WebappLoader;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.io.*;
@@ -9,7 +11,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.ellen.tomcat.mini.startup.Bootstrap.WEB_ROOT;
+
 public class StaticResourceProcessor {
+
+    private static final int BUFFER_SIZE = 1024;
 
     private final static String OK_Message = """
             HTTP/1.1 ${StatusCode} ${StatusName}\r
@@ -28,21 +34,22 @@ public class StaticResourceProcessor {
             <h1>File Not Found</h1>""";
 
     public void process(HttpRequestImpl request, HttpResponseImpl response) throws IOException {
-        byte[] bytes;
-        PrintWriter writer;
-        String path = request.getUri().substring(1);
-        try (InputStream is = this.getClass().getClassLoader().getResourceAsStream(path)) {
-            response.setCharacterEncoding("UTF-8");
-            writer = response.getWriter();
-            if (is != null) {
-                bytes = is.readAllBytes();
-                writer.println(new String(bytes, StandardCharsets.UTF_8));
-
-            } else {
-                writer.println(errorMessage);
+        byte[] bytes = new byte[BUFFER_SIZE];
+        OutputStream output = response.getOutput();
+        String path = request.getDocbase() + request.getUri();
+        File file = new File(WEB_ROOT, path);
+        if (file.exists()) {
+            try (FileInputStream fis = new FileInputStream(file)) {
+                int ch;
+                while ((ch = fis.read(bytes, 0, BUFFER_SIZE)) != -1) {
+                    output.write(bytes, 0, ch);
+                }
+                output.flush();
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } else {
+            output.write(errorMessage.getBytes(StandardCharsets.UTF_8));
         }
     }
 

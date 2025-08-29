@@ -4,25 +4,48 @@ package com.ellen.tomcat.mini.startup;
 import com.ellen.tomcat.mini.Loader;
 import com.ellen.tomcat.mini.core.*;
 import com.ellen.tomcat.mini.connector.http.HttpConnector;
+import com.ellen.tomcat.mini.loader.CommonLoader;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
 import java.io.File;
 
 
 public class Bootstrap {
 
-    public static final String MINI_HOME = System.getProperty("user.dir");
+    public static final String CLASS_PATH = System.getProperty("user.dir");
 
-    public static final String WEB_ROOT = MINI_HOME  + File.separator + "webapps";
+    public static String WEB_ROOT = CLASS_PATH;
 
-    public static final int PORT = 8080;
+    public static int PORT = 8080;
 
-    private static int debug = 1;
+    private static int debug = 0;
 
     public static void main(String[] args) {
         if (debug >= 1) {
             log("startup");
         }
-        System.setProperty("com.ellen.tomcat.mini", MINI_HOME);
+
+        String file = CLASS_PATH + File.separator + "conf" + File.separator + "server.xml";
+        SAXReader reader = new SAXReader();
+        Document document;
+        try {
+            document = reader.read(file);
+            Element root = document.getRootElement();
+            Element serviceElement = root.element("Service");
+            Element connectorelement = serviceElement.element("Connector");
+            Attribute portattribute = connectorelement.attribute("port");
+            PORT = Integer.parseInt(portattribute.getText());
+            Element engine = serviceElement.element("Engine");
+            Element hostelement = engine.element("Host");
+            Attribute appbaseattribute = hostelement.attribute("appBase");
+            WEB_ROOT = WEB_ROOT + File.separator + appbaseattribute.getText();
+        } catch (Exception ignored) {
+        }
+
+        System.setProperty("com.ellen.tomcat.mini", CLASS_PATH);
         System.setProperty("com.ellen.tomcat.mini.webapps", WEB_ROOT);
 
         HttpConnector connector = new HttpConnector();

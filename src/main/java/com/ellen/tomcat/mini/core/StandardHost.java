@@ -2,12 +2,17 @@ package com.ellen.tomcat.mini.core;
 
 import com.ellen.tomcat.mini.*;
 import com.ellen.tomcat.mini.connector.http.HttpConnector;
+import com.ellen.tomcat.mini.loader.CommonLoader;
+import com.ellen.tomcat.mini.loader.WebappLoader;
 import com.ellen.tomcat.mini.logger.FileLogger;
+import lib.HostListener;
 
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class StandardHost extends ContainerBase {
@@ -43,8 +48,8 @@ public class StandardHost extends ContainerBase {
         if (context == null) {
             // context 内包含各自的 classLoader & Filter
             context = new StandardContext(docbase, connector);
-            ClassLoader parent = this.loader.getClassLoader();
-            Loader loader = new WebappLoader(docbase, parent);
+            ClassLoader parentClassLoader = this.loader.getClassLoader();
+            Loader loader = new WebappLoader(docbase, parentClassLoader);
             context.setLoader(loader);
             loader.start();
             context.start();
@@ -58,16 +63,18 @@ public class StandardHost extends ContainerBase {
 
         addListenerDef(ContainerListenerDef.builder()
                 .listenerName("HostListener")
-                .listenerClass("v1.server.HostListener")
-                .build());
-
-        addListenerDef(ContainerListenerDef.builder()
-                .listenerName("HostListener")
-                .listenerClass("v2.server.HostListener")
+                .listenerClass(HostListener.class.getName())
                 .build());
 
         listenerStart();
         fireContainerEvent("Host Started", this);
+
+        File classPath = new File(System.getProperty("com.ellen.tomcat.mini.webapps"));
+        for (String dir : Objects.requireNonNull(classPath.list())) {
+            if (!dir.startsWith(".")) {
+                getContext(dir);
+            }
+        }
     }
 
     public HttpConnector getConnector() {

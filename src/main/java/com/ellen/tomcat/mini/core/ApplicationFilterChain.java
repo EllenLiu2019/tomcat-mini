@@ -27,7 +27,7 @@ public class ApplicationFilterChain implements FilterChain {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-        System.out.println("FilterChain doFilter");
+        System.out.println("FilterChain");
 
         internalDoFilter(request, response);
     }
