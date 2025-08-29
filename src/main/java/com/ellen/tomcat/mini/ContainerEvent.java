@@ -1,15 +1,19 @@
 package com.ellen.tomcat.mini;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.EventObject;
 
 @Getter
+@ToString
 public final class ContainerEvent extends EventObject {
 
     private final Container container;
-    private final Object data;
+
     private final String type;
+
+    private final Object data;
 
     public ContainerEvent(Container container, String type, Object data) {
         super(container);
@@ -18,8 +22,4 @@ public final class ContainerEvent extends EventObject {
         this.data = data;
     }
 
-    public String toString() {
-        return ("ContainerEvent['" + getContainer() + "','" +
-                getType() + "','" + getData() + "']");
-    }
 }

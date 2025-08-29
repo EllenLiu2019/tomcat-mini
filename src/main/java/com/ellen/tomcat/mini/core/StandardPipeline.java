@@ -106,7 +106,7 @@ public class StandardPipeline implements Pipeline {
         protected int stage = 0; // 记录 valve 编号
 
         public void invokeNext(Request request, Response response) throws IOException, ServletException {
-            System.out.println("StandardPipelineValveContext invokeNext()");
+            System.out.println("StandardPipelineValveContext invokeNext");
 
             int subscript = stage;
             stage = stage + 1;

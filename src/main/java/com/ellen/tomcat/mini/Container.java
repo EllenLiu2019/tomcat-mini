@@ -1,41 +1,39 @@
 package com.ellen.tomcat.mini;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public interface Container {
 
-    public static final String ADD_CHILD_EVENT = "addChild";
-    public static final String REMOVE_CHILD_EVENT = "removeChild";
+    String ADD_CHILD_EVENT = "addChild";
+    String REMOVE_CHILD_EVENT = "removeChild";
 
-    public String getInfo();
+    String getInfo();
 
-    public ClassLoader getLoader();
+    Loader getLoader();
 
-    public void setLoader(ClassLoader loader);
+    void setLoader(Loader loader);
 
-    public String getName();
+    String getName();
 
-    public void setName(String name);
+    void setName(String name);
 
-    public Container getParent();
+    Container getParent();
 
-    public void setParent(Container container);
+    void setParent(Container container);
 
-    public void addChild(Container child);
+    void addChild(Container child);
 
-    public Container findChild(String name);
+    Container findChild(String name);
 
-    public Container[] findChildren();
+    Container[] findChildren();
 
-    public void invoke(Request request, Response response)
+    void invoke(Request request, Response response)
             throws IOException, ServletException;
 
-    public void removeChild(Container child);
+    void removeChild(Container child);
 
-    public Logger getLogger();
+    Logger getLogger();
 
-    public void setLogger(Logger logger);
+    void setLogger(Logger logger);
 }

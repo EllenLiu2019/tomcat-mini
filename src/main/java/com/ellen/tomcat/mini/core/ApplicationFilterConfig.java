@@ -1,13 +1,10 @@
 package com.ellen.tomcat.mini.core;
 
-import com.ellen.tomcat.mini.Context;
-import lombok.Getter;
+import com.ellen.tomcat.mini.Loader;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -15,48 +12,42 @@ import java.util.Map;
 
 final class ApplicationFilterConfig implements FilterConfig {
 
-    private StandardContext context;
+    private final StandardContext context;
 
-    @Getter
     private Filter filter;
+
     private FilterDef filterDef;
 
 
-    public ApplicationFilterConfig(StandardContext context, FilterDef filterDef)
-            throws ClassCastException, ClassNotFoundException,
-            IllegalAccessException, InstantiationException, ServletException, InvocationTargetException, NoSuchMethodException {
+    public ApplicationFilterConfig(StandardContext context, FilterDef filterDef) throws Exception {
         this.context = context;
         setFilterDef(filterDef);
     }
 
-    void setFilterDef(FilterDef filterDef)
-            throws ClassCastException, ClassNotFoundException,
-            IllegalAccessException, InstantiationException,
-            ServletException, InvocationTargetException, NoSuchMethodException {
+    void setFilterDef(FilterDef filterDef) throws Exception {
         this.filterDef = filterDef;
         if (filterDef == null) {
-            // 释放之前分配的所有过滤器实例
             if (this.filter != null) {
                 this.filter.destroy();
             }
             this.filter = null;
         } else {
-            // 分配一个新的过滤器实例
             initFilter();
         }
     }
 
-    void initFilter() throws ClassCastException, ClassNotFoundException,
-            IllegalAccessException, InstantiationException, ServletException, NoSuchMethodException, InvocationTargetException {
-
+    void initFilter() throws Exception {
         if (this.filter != null) {
             return;
         }
-
-        ClassLoader classLoader = context.getLoader();
-        Class<?> clazz = classLoader.loadClass(filterDef.getFilterClass());
+        Loader loader = this.context.getLoader(); // app class loader
+        Class<?> clazz = loader.getClassLoader().loadClass(this.filterDef.getFilterClass());
         this.filter = (Filter) clazz.getConstructor().newInstance();
-        filter.init(this);
+        this.filter.init(this);
+    }
+
+    Filter getFilter() {
+        return this.filter;
     }
 
     public String getFilterName() {

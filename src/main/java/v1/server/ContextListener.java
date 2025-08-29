@@ -1,15 +1,15 @@
-package v2.server;
+package v1.server;
 
 
 import com.ellen.tomcat.mini.ContainerEvent;
 import com.ellen.tomcat.mini.ContainerListener;
 
 
-public class TestListener implements ContainerListener {
+public class ContextListener implements ContainerListener {
 
     @Override
     public void containerEvent(ContainerEvent event) {
-        System.out.println(event);
+        System.out.println("v1 publish context event: "  + event);
     }
 
 }

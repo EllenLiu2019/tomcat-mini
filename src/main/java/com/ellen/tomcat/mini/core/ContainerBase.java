@@ -13,7 +13,7 @@ public abstract class ContainerBase implements Container {
 
     protected final Map<String, Container> children = new ConcurrentHashMap<>();
 
-    protected ClassLoader loader = new WebappClassLoader();
+    protected Loader loader;
 
     @Getter
     @Setter
@@ -105,7 +105,7 @@ public abstract class ContainerBase implements Container {
 
     public abstract String getInfo();
 
-    public ClassLoader getLoader() {
+    public Loader getLoader() {
         if (loader != null) {
             return loader;
         }
@@ -115,8 +115,8 @@ public abstract class ContainerBase implements Container {
         return null;
     }
 
-    public synchronized void setLoader(ClassLoader loader) {
-        ClassLoader oldLoader = this.loader;
+    public synchronized void setLoader(Loader loader) {
+        Loader oldLoader = this.loader;
         if (oldLoader == loader) {
             return;
         }

@@ -1,80 +1,120 @@
 package com.ellen.tomcat.mini.core;
 
-import com.ellen.tomcat.mini.Container;
 
-import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLStreamHandler;
 
-public class WebappClassLoader extends ClassLoader {
+// ClassLoader for context
+public class WebappClassLoader extends URLClassLoader {
 
-    ClassLoader classLoader;
-    String path;
-    String docbase;
-    Container container;
+    protected boolean delegate = false;
+    private ClassLoader parent; // CommonClassLoader
+    private ClassLoader system; // Java inner ClassLoader
 
     public WebappClassLoader() {
-        this.init();
+        this(new URL[0]);
     }
-    public synchronized void init() {
-        System.out.println("Starting WebappLoader");
+
+    public WebappClassLoader(URL[] urls) {
+        super(urls);
+        this.parent = super.getParent();
+        this.system = super.getSystemClassLoader();
+    }
+
+    public WebappClassLoader(ClassLoader parent) {
+        this(new URL[0], parent);
+    }
+
+    public WebappClassLoader(URL[] urls, ClassLoader parent) {
+        super(urls, parent);
+        this.parent = parent;
+        this.system = super.getSystemClassLoader();
+    }
+
+    public boolean getDelegate() {
+        return this.delegate;
+    }
+
+    public void setDelegate(boolean delegate) {
+        this.delegate = delegate;
+    }
+
+    public Class<?> findClass(String name) throws ClassNotFoundException {
+        Class<?> clazz = super.findClass(name);
+        if (clazz == null) {
+            throw new ClassNotFoundException(name);
+        }
+        return clazz;
+    }
+
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+        return this.loadClass(name, false);
+    }
+
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        Class<?> clazz;
+
+        // 系统类加载器，防止覆盖 Java 系统类
+        try {
+            clazz = system.loadClass(name);
+            if (clazz != null) {
+                if (resolve)
+                    resolveClass(clazz);
+                return (clazz);
+            }
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        boolean delegateLoad = delegate;
+        if (delegateLoad) {
+            clazz = this.delegateParent(name, resolve);
+            if (clazz != null) {
+                return clazz;
+            }
+        }
 
         try {
-            URL[] urls = new URL[1];
-            File classPath = new File(System.getProperty("com.ellen.tomcat.mini.base"));
-            String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString();
-            if (docbase != null && !docbase.isEmpty()) {
-                repository = repository + docbase + File.separator;
-                System.out.println("Webapp classloader Repository : " + repository);
+            clazz = findClass(name);
+            if (clazz != null) {
+                if (resolve)
+                    resolveClass(clazz);
+                return (clazz);
             }
-
-            urls[0] = new URL(null, repository, (URLStreamHandler) null);
-            classLoader = new URLClassLoader(urls);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException ignored) {
         }
+
+        if (!delegateLoad) {
+            clazz = this.delegateParent(name, resolve);
+            if (clazz != null) {
+                return clazz;
+            }
+        }
+        throw new ClassNotFoundException(name);
     }
 
-    public Container getContainer() {
-        return container;
-    }
+    private Class<?> delegateParent(String name, boolean resolve) {
+        Class<?> clazz;
+        ClassLoader loader = parent;
 
-    public void setContainer(Container container) {
-        this.container = container;
-    }
+        if (loader == null) {
+            loader = system;
+        }
 
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getDocbase() {
-        return docbase;
-    }
-
-    public void setDocbase(String docbase) {
-        this.docbase = docbase;
-    }
-
-    public ClassLoader getClassLoader() {
-        return classLoader;
+        try {
+            clazz = loader.loadClass(name);
+            if (clazz != null) {
+                if (resolve) {
+                    resolveClass(clazz);
+                }
+                return clazz;
+            }
+        } catch (ClassNotFoundException ignored) {
+        }
+        return null;
     }
 
     public String getInfo() {
         return "A simple loader";
     }
 
-    public void addRepository(String repository) {
-    }
-
-    public String[] findRepositories() {
-        return null;
-    }
-
-    public void stop() {
-    }
 }

@@ -54,8 +54,7 @@ public class ApplicationFilterChain implements FilterChain {
             return;
         }
 
-        // 所有的 Filters 均已经调用完毕；最后调用 servlet.service()
-        // We fell off the end of the chain -- call the servlet instance
+        // Fell off the end of chain, call servlet.service
         try {
             HttpServletRequest requestFacade = new HttpRequestFacade((HttpRequestImpl) request);
             HttpServletResponse responseFacade = new HttpResponseFacade((HttpResponseImpl) response);

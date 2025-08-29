@@ -16,13 +16,14 @@ public class StandardHost extends ContainerBase {
 
     Map<String, StandardContext> contexts = new ConcurrentHashMap<>();//contextName - servletContext
 
-    private ArrayList<ContainerListenerDef> listenerDefs = new ArrayList<>();
+    private final ArrayList<ContainerListenerDef> listenerDefs = new ArrayList<>();
 
-    private ArrayList<ContainerListener> listeners = new ArrayList<>();
+    private final ArrayList<ContainerListener> listeners = new ArrayList<>();
 
 
     public StandardHost() {
         super(new StandardHostValve());
+        setName("localhost");
         log("Host created.");
     }
 
@@ -42,27 +43,31 @@ public class StandardHost extends ContainerBase {
         if (context == null) {
             // context 内包含各自的 classLoader & Filter
             context = new StandardContext(docbase, connector);
+            ClassLoader parent = this.loader.getClassLoader();
+            Loader loader = new WebappLoader(docbase, parent);
+            context.setLoader(loader);
+            loader.start();
+            context.start();
             this.contexts.put(docbase, context);
         }
         return context;
     }
 
-    public void init() {
-        fireContainerEvent("Host Started", this);
-
+    public void start() {
         setLogger(new FileLogger());
 
         addListenerDef(ContainerListenerDef.builder()
-                .listenerName("TestListener")
-                .listenerClass("v1.server.TestListener")
+                .listenerName("HostListener")
+                .listenerClass("v1.server.HostListener")
                 .build());
 
         addListenerDef(ContainerListenerDef.builder()
-                .listenerName("TestListener")
-                .listenerClass("v2.server.TestListener")
+                .listenerName("HostListener")
+                .listenerClass("v2.server.HostListener")
                 .build());
 
         listenerStart();
+        fireContainerEvent("Host Started", this);
     }
 
     public HttpConnector getConnector() {
@@ -74,14 +79,8 @@ public class StandardHost extends ContainerBase {
     }
 
     public void addContainerListener(ContainerListener listener) {
-        synchronized (listeners) {
-            listeners.add(listener);
-        }
-    }
-
-    public void removeContainerListener(ContainerListener listener) {
-        synchronized (listeners) {
-            listeners.remove(listener);
+        synchronized (this.listeners) {
+            this.listeners.add(listener);
         }
     }
 
@@ -92,8 +91,8 @@ public class StandardHost extends ContainerBase {
 
         ContainerEvent event = new ContainerEvent(this, type, data);
         ContainerListener[] list = new ContainerListener[0];
-        synchronized (listeners) {
-            list = listeners.toArray(list);
+        synchronized (this.listeners) {
+            list = this.listeners.toArray(list);
         }
         for (ContainerListener containerListener : list) {
             containerListener.containerEvent(event);
@@ -102,33 +101,27 @@ public class StandardHost extends ContainerBase {
     }
 
     public void addListenerDef(ContainerListenerDef listenererDef) {
-        synchronized (listenerDefs) {
-            listenerDefs.add(listenererDef);
+        synchronized (this.listenerDefs) {
+            this.listenerDefs.add(listenererDef);
         }
     }
 
-    public boolean listenerStart() {
+    public void listenerStart() {
         System.out.println("Listener Start..........");
-        boolean ok = true;
-        synchronized (listeners) {
-            listeners.clear();
-            for (ContainerListenerDef def : listenerDefs) {
-                try {
-                    // Identify the class loader we will be using
-                    String listenerClass = def.getListenerClass();
-                    WebappClassLoader classLoader = (WebappClassLoader) this.getLoader();
 
-                    // Instantiate a new instance of this filter and return it
+        synchronized (this.listeners) {
+            this.listeners.clear();
+            for (ContainerListenerDef def : this.listenerDefs) {
+                String listenerClass = def.getListenerClass();
+                CommonLoader classLoader = (CommonLoader) this.getLoader();
+                try {
                     Class<?> clazz = classLoader.getClassLoader().loadClass(listenerClass);
                     ContainerListener listener = (ContainerListener) clazz.getConstructor().newInstance();
-
                     addContainerListener(listener);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    ok = false;
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
-        return (ok);
     }
 }

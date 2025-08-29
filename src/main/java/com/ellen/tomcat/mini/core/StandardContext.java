@@ -11,7 +11,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,20 +50,25 @@ public class StandardContext extends ContainerBase implements Context {
         super.log("Container created.");
         this.docbase = docbase;
         this.connector = connector;
-        this.init();
     }
 
-    public void init() {
+    public void start() {
+        addListenerDef(ContainerListenerDef.builder()
+                .listenerName("ContextListener")
+                .listenerClass(this.docbase + ".server.ContextListener")
+                .build());
+
+        listenerStart();
         fireContainerEvent("Container Started", this);
 
         try {
             addFilterDef(FilterDef.builder()
-                    .filterName("TestFilter")
-                    .filterClass(this.docbase + ".server.TestFilter")
+                    .filterName("AuthFilter")
+                    .filterClass(this.docbase + ".server.AuthFilter")
                     .build());
 
             addFilterMap(FilterMap.builder()
-                    .filterName("TestFilter")
+                    .filterName("AuthFilter")
                     .urlPattern("/*")
                     .build());
 
@@ -74,15 +78,32 @@ public class StandardContext extends ContainerBase implements Context {
         }
     }
 
+    public void listenerStart() {
+        System.out.println("Context Listener Start..........");
+
+        synchronized (this.listeners) {
+            this.listeners.clear();
+            for (ContainerListenerDef def : listenerDefs) {
+                ContainerListener listener;
+                try {
+                    String listenerClass = def.getListenerClass();
+                    Loader loader = this.getLoader(); // 加载 app class loader
+
+                    Class<?> clazz = loader.getClassLoader().loadClass(listenerClass);
+                    listener = (ContainerListener) clazz.getConstructor().newInstance();
+
+                    addContainerListener(listener);
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+        }
+
+    }
+
     public void addContainerListener(ContainerListener listener) {
         synchronized (listeners) {
             this.listeners.add(listener);
-        }
-    }
-
-    public void removeContainerListener(ContainerListener listener) {
-        synchronized (listeners) {
-            listeners.remove(listener);
         }
     }
 
@@ -169,7 +190,7 @@ public class StandardContext extends ContainerBase implements Context {
 
     public void filterBuild() throws Exception {
         System.out.println("Filter Build..........");
-        // Instantiate and record a FilterConfig for each defined filter
+
         synchronized (this.filterConfigs) {
             this.filterConfigs.clear();
             for (String name : this.filterDefs.keySet()) {
@@ -192,40 +213,6 @@ public class StandardContext extends ContainerBase implements Context {
         }
         return urlPattern.startsWith("/");
     }
-
-    public boolean listenerStart() {
-        System.out.println("Listener Start..........");
-        boolean ok = true;
-        synchronized (listeners) {
-            listeners.clear();
-            Iterator<ContainerListenerDef> defs = listenerDefs.iterator();
-            while (defs.hasNext()) {
-                ContainerListenerDef def = defs.next();
-                ContainerListener listener = null;
-                try {
-                    // Identify the class loader we will be using
-                    String listenerClass = def.getListenerClass();
-                    ClassLoader classLoader = null;
-                    classLoader = this.getLoader();
-
-                    ClassLoader oldCtxClassLoader =
-                            Thread.currentThread().getContextClassLoader();
-
-                    // Instantiate a new instance of this filter and return it
-                    Class<?> clazz = classLoader.loadClass(listenerClass);
-                    listener = (ContainerListener) clazz.newInstance();
-
-                    addContainerListener(listener);
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    ok = false;
-                }
-            }
-        }
-
-        return (ok);
-    }
-
 
     @Override
     public String getDisplayName() {

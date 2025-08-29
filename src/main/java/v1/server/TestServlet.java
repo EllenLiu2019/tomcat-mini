@@ -20,7 +20,7 @@ public class TestServlet extends HttpServlet {
                 """;
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        System.out.println("v1 Enter doGet");
+        System.out.println("v1 doGet");
         System.out.println("v1 parameter name : " + request.getParameter("name"));
 
         count++;

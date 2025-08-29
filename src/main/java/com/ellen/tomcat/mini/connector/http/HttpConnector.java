@@ -15,11 +15,11 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import static com.ellen.tomcat.mini.startup.Bootstrap.PORT;
+
 public class HttpConnector implements Connector, Runnable {
 
     private String info = "com.ellen.tomcat.mini.connector.http.HttpConnector/0.1";
-
-    private final int port = 8080;
 
     int minProcessors = 3;
 
@@ -37,7 +37,7 @@ public class HttpConnector implements Connector, Runnable {
     private String threadName;
 
     public void start() {
-        this.threadName = "HttpConnector[" + this.port + "]";
+        this.threadName = "HttpConnector[" + PORT + "]";
         log("httpConnector.starting  " + threadName);
         Thread thread = new Thread(this);
         thread.start();
@@ -47,7 +47,7 @@ public class HttpConnector implements Connector, Runnable {
     public void run() {
         ServerSocket serverSocket;
         try {
-            serverSocket = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
+            serverSocket = new ServerSocket(PORT, 1, InetAddress.getByName("127.0.0.1"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

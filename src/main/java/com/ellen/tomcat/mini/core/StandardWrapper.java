@@ -1,9 +1,6 @@
 package com.ellen.tomcat.mini.core;
 
-import com.ellen.tomcat.mini.Container;
-import com.ellen.tomcat.mini.Request;
-import com.ellen.tomcat.mini.Response;
-import com.ellen.tomcat.mini.Wrapper;
+import com.ellen.tomcat.mini.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,10 +46,10 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
 
         Servlet servlet = null;
         Class<?> classClass;
-        ClassLoader classLoader = this.getLoader();
+        Loader loader = this.getLoader();
         try {
-            if (classLoader != null) {
-                classClass = classLoader.loadClass(this.servletClass);
+            if (loader != null) {
+                classClass = loader.getClassLoader().loadClass(this.servletClass);
                 servlet = (Servlet) classClass.getConstructor().newInstance();
             }
         } catch (ClassNotFoundException e) {
@@ -70,7 +67,7 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         this.servlet = servlet;
     }
 
-    public ClassLoader getLoader() {
+    public Loader getLoader() {
         if (this.loader != null) {
             return this.loader;
         }
