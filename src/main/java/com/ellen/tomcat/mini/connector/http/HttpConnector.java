@@ -45,12 +45,6 @@ public class HttpConnector implements Connector, Runnable {
 
     @Override
     public void run() {
-        ServerSocket serverSocket;
-        try {
-            serverSocket = new ServerSocket(PORT, 1, InetAddress.getByName("127.0.0.1"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         while (this.curProcessors < this.minProcessors) {
             HttpProcessor processor = new HttpProcessor(this);
@@ -59,10 +53,21 @@ public class HttpConnector implements Connector, Runnable {
             this.curProcessors++;
         }
 
+        ServerSocket serverSocket;
+        try {
+            // BIO: 服务器启动 ServerSocket
+            // TODO: NIO: 服务器启动 ServerSocketChannel；Channel 设置成非阻塞式；注册 selector
+            serverSocket = new ServerSocket(PORT, 1, InetAddress.getByName("127.0.0.1"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        // 无限循环 + wait + notify
         while (true) {
-            Socket socket;
             try {
-                socket = serverSocket.accept();
+                // BIO：在 PORT 端口监听 Socket 请求，
+                // accept 阻塞等待 网络请求
+                Socket socket = serverSocket.accept();
                 HttpProcessor processor = createProcessor();
 
                 if (processor == null) {
@@ -70,8 +75,8 @@ public class HttpConnector implements Connector, Runnable {
                     continue;
                 }
 
+                // BIO：每个请求分配一个线程处理
                 processor.assign(socket);
-
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }

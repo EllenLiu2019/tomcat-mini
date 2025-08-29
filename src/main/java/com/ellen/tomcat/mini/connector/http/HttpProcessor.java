@@ -46,6 +46,7 @@ public class HttpProcessor implements Runnable {
 
     @Override
     public void run() {
+        // 无限循环 + wait + notify
         while (true) {
             Socket socket = await();
             if (socket == null) {

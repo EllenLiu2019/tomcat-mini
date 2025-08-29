@@ -5,6 +5,7 @@ import javax.servlet.ServletInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+// Blocking model
 public class SocketInputStream extends ServletInputStream {
 
     private static final byte CR = (byte) '\r'; // 回车
@@ -252,6 +253,7 @@ public class SocketInputStream extends ServletInputStream {
     protected void fill() throws IOException {
         pos = 0;
         count = 0;
+        // BIO: 接收数据，read 阻塞等待
         int nRead = is.read(buf, 0, buf.length);
         if (nRead > 0) {
             count = nRead;
